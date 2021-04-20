@@ -160,6 +160,7 @@ const getDomainName = async (page, uri) => {
 
 module.exports = async (
   uri,
+  timeout = 0,
   puppeteerArgs = [],
   puppeteerAgent = "facebookexternalhit/1.1 (+http://www.facebook.com/externalhit_uatext.php)"
 ) => {
@@ -169,6 +170,7 @@ module.exports = async (
     args: [...puppeteerArgs],
   });
   const page = await browser.newPage();
+  await page.setDefaultNavigationTimeout(timeout);
   page.setUserAgent(puppeteerAgent);
 
   await page.goto(uri);
