@@ -169,20 +169,25 @@ module.exports = async (
     headless: true,
     args: [...puppeteerArgs],
   });
-  const page = await browser.newPage();
-  await page.setDefaultNavigationTimeout(timeout);
-  page.setUserAgent(puppeteerAgent);
+  
+  try {
+    const page = await browser.newPage();
+    await page.setDefaultNavigationTimeout(timeout);
+    page.setUserAgent(puppeteerAgent);
 
-  await page.goto(uri);
-  await page.exposeFunction("request", request);
-  await page.exposeFunction("urlImageIsAccessible", urlImageIsAccessible);
+    await page.goto(uri);
+    await page.exposeFunction("request", request);
+    await page.exposeFunction("urlImageIsAccessible", urlImageIsAccessible);
 
-  const obj = {};
-  obj.title = await getTitle(page);
-  obj.description = await getDescription(page);
-  obj.domain = await getDomainName(page, uri);
-  obj.img = await getImg(page, uri);
-
-  await browser.close();
-  return obj;
+    const obj = {};
+    obj.title = await getTitle(page);
+    obj.description = await getDescription(page);
+    obj.domain = await getDomainName(page, uri);
+    obj.img = await getImg(page, uri);
+    await browser.close();
+    return obj;
+  } catch (error) {
+    await browser.close();
+    throw error;
+  }
 };
