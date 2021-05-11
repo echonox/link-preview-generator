@@ -159,28 +159,38 @@ const getDomainName = async (page, uri) => {
 };
 
 module.exports = async (
-  uri,
-  puppeteerArgs = [],
-  puppeteerAgent = "facebookexternalhit/1.1 (+http://www.facebook.com/externalhit_uatext.php)"
+    timeout = 0,
+    puppeteerArgs = [],
+    puppeteerAgent = "facebookexternalhit/1.1 (+http://www.facebook.com/externalhit_uatext.php)"
 ) => {
   puppeteer.use(pluginStealth());
   const browser = await puppeteer.launch({
     headless: true,
     args: [...puppeteerArgs],
   });
-  const page = await browser.newPage();
-  page.setUserAgent(puppeteerAgent);
 
-  await page.goto(uri);
-  await page.exposeFunction("request", request);
-  await page.exposeFunction("urlImageIsAccessible", urlImageIsAccessible);
+  return {
+    preview: async (uri) => {
+      try {
+        const page = await browser.newPage();
+        await page.setDefaultNavigationTimeout(timeout);
+        page.setUserAgent(puppeteerAgent);
 
-  const obj = {};
-  obj.title = await getTitle(page);
-  obj.description = await getDescription(page);
-  obj.domain = await getDomainName(page, uri);
-  obj.img = await getImg(page, uri);
+        await page.goto(uri);
+        await page.exposeFunction("request", request);
+        await page.exposeFunction("urlImageIsAccessible", urlImageIsAccessible);
 
-  await browser.close();
-  return obj;
+        const obj = {};
+        obj.title = await getTitle(page);
+        obj.description = await getDescription(page);
+        obj.domain = await getDomainName(page, uri);
+        obj.img = await getImg(page, uri);
+        await page.close();
+        return obj;
+      } catch (error) {
+        await page.close();
+        throw error;
+      }
+    }
+  }
 };
